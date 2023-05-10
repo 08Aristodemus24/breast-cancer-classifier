@@ -105,7 +105,7 @@ class Colony:
                 temp_ant.append_tour(temp_tour)
                 self.ants[k, 0] = temp_ant
                 
-                # loop from 1 to 1023, instead of 0 to 1023, but stop at 1024
+                # loop from [1] to [1023], instead of [0] to [1023], but stop at 1024
                 for l in range(1, self.num_features):
                     
                     # since we are accessing last element of tour
@@ -131,6 +131,33 @@ class Colony:
                     self.ants[k, 0].append_tour(j)
                 
                 print(self.ants[k, 0])
+
+                # calculate cost given the paths made by the and
+                cost, out = [0, 0] # self.J()
+                if cost < self.best_ant_cost:
+                    pass
+                    # self.best_ant = cost
+
+            # updating pheromones for positive feedback
+            for k in range(self.ants):
+                # append the first node to the whole path made by ant
+                tour = np.append(self.ants[k, 0].tour, self.ants[k, 0].tour[0])
+
+                # go through now all features from index [0] to [1023] 
+                for l in range(self.num_features):
+                    i = tour[l]
+                    j = tour[l + 1]
+                    self.tau[i, j] = self.tau[i, j] + self.Q / self.ants[k, 0].cost
+
+            # updating evaporation rate for negative feedback
+            self.tau = (1 - self.rho) * self.tau
+
+            # store the best cost
+            self.best_cost.append(self.best_ant_cost)
+
+            if epoch % 10 == 0:
+                print(f'{epoch}\n')
+
                     
     def roulette(self, P):
         # generate random float between (0, 1) exclusively
