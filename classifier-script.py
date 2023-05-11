@@ -12,13 +12,18 @@ class Ant:
     def __init__(self):
         self._tour = []
         self._cost = []
-        self._out = []
+        self._output = []
 
     def __str__(self):
         return f"""
         tours: {self.tour}\n
+        length: {len(self.tour)}\n
+
         costs: {self.cost}\n
-        outs: {self.out}\n
+        length: {len(self.tour)}\n
+
+        outputs: {self.output}\n
+        length: {len(self.tour)}\n
         """
         
     @property
@@ -36,11 +41,11 @@ class Ant:
         self._cost.append(val)
 
     @property
-    def out(self):
-        return self._out
+    def output(self):
+        return self._output
     
-    def append_out(self, val):
-        self._out.append(val)
+    def append_output(self, val):
+        self._output.append(val)
         
 
 class Colony:
@@ -103,6 +108,7 @@ class Colony:
                 # number from 0 to 1023 inclusively, 1024 is excluded
                 temp_tour = np.random.randint(0, self.num_features)
                 temp_ant.append_tour(temp_tour)
+                
                 self.ants[k, 0] = temp_ant
                 
                 # loop from [1] to [1023], instead of [0] to [1023], but stop at 1024
@@ -131,35 +137,103 @@ class Colony:
                     self.ants[k, 0].append_tour(j)
                 
                 print(self.ants[k, 0])
+                cost, output = self.J(self.ants[k, 0].tour, self.num_sampled_features, {
+                    'X': self.X,
+                    'Y': self.Y,
+                    'num_features': self.num_features,
+                    'num_instances': self.num_instances
+                })
 
-                # calculate cost given the paths made by the and
-                cost, out = [0, 0] # self.J()
-                if cost < self.best_ant_cost:
-                    pass
-                    # self.best_ant = cost
+            #     # calculate cost given the paths made by the and
+            #     cost, out = [0, 0] # self.J()
+            #     if cost < self.best_ant_cost:
+            #         pass
+            #         # self.best_ant = cost
 
-            # updating pheromones for positive feedback
-            for k in range(self.ants):
-                # append the first node to the whole path made by ant
-                tour = np.append(self.ants[k, 0].tour, self.ants[k, 0].tour[0])
+            # # updating pheromones for positive feedback
+            # for k in range(self.ants):
+            #     # append the first node to the whole path made by ant
+            #     tour = np.append(self.ants[k, 0].tour, self.ants[k, 0].tour[0])
 
-                # go through now all features from index [0] to [1023] 
-                for l in range(self.num_features):
-                    i = tour[l]
-                    j = tour[l + 1]
-                    self.tau[i, j] = self.tau[i, j] + self.Q / self.ants[k, 0].cost
+            #     # go through now all features from index [0] to [1023] 
+            #     for l in range(self.num_features):
+            #         i = tour[l]
+            #         j = tour[l + 1]
+            #         self.tau[i, j] = self.tau[i, j] + self.Q / self.ants[k, 0].cost
 
-            # updating evaporation rate for negative feedback
-            self.tau = (1 - self.rho) * self.tau
+            # # updating evaporation rate for negative feedback
+            # self.tau = (1 - self.rho) * self.tau
 
-            # store the best cost
-            self.best_cost.append(self.best_ant_cost)
+            # # store the best cost
+            # self.best_cost.append(self.best_ant_cost)
 
-            if epoch % 10 == 0:
-                print(f'{epoch}\n')
+            # if epoch % 10 == 0:
+            #     print(f'{epoch}\n')
 
+    def J(self, paths, num_sampled_features, data):
+        """paths - is the built path by ant k which is of length 1 to num features - 1 inclusively
+        with values 0 to 1023 since indeces of P are used
+
+        num_sampled_features - is the number of features to be 
+        sampled which is currently by default 15
+
+        data - is a dictionary of X, Y, num_features, and num_instances"""
+
+        # read data
+        X = data['X']
+        Y = data['Y']
+
+        # select the paths in q of length 1 to num_features - 1 
+        # made by ant k from 1 to nf which recall is 15 by default
+        selected_paths = paths[0:num_sampled_features]
+        print(selected_paths)
+
+        # calculate ratio of number of features to 
+        # sample to length of tour/path made by ant k
+        paths_len = len(paths)
+        ratio = num_sampled_features / paths_len
+        print(ratio)
+
+        # recall 1024 x 100 matrix
+        # print(X)
+        # print(X.index)
+        # print(X.iloc[selected_paths].index)
+        selected_X = X.iloc[selected_paths]
+        print(selected_X)
+
+        # train and test error ratios
+        train_error_ratio = 0.7
+        cross_error_ratio = 1 - train_error_ratio
+
+        # train neural network
+        n_runs = 3
+        EE = np.zeros((n_runs,))
+        for r in range(n_runs):
+            # some Neural Network class
+            results = 0
+
+            # calculate overall error in both training and cross
+            # validation datasets
+            EE[r] = (train_error_ratio * results['train_data'].error) + (cross_error_ratio * results['cross_data'].error)
+
+        # calculate the average of all errors or all errors
+        # divded by number of training and testing examples
+        # calculate and set final cost
+        cost = np.mean(EE)
+
+        output = {
+            'selected_paths': selected_paths,
+            'num_sampled_features': num_sampled_features,
+            'ratio': ratio,
+            'error': cost,
+        }
+
+        return [cost, output]
                     
     def roulette(self, P):
+        """P - is the transition probability vector with dimensionality 1 x num_features
+        or in this case 1 x 1024 if number of features is 1024
+        """
         # generate random float between (0, 1) exclusively
         r_num = np.random.uniform()
         
@@ -211,9 +285,9 @@ if __name__ == "__main__":
     # view_data_info(df)
 
     X_trains, X_cross, Y_trains, Y_cross = train_test_split(X, Y, test_size=0.3, random_state=0)
-    # view_train_cross(X_trains, X_cross, Y_trains, Y_cross)    
+    view_train_cross(X_trains, X_cross, Y_trains, Y_cross)    
 
-    colony = Colony(X_trains.T, Y_trains, epochs=1)
+    colony = Colony(X.T, Y, epochs=1)
     colony.run()
 
 
