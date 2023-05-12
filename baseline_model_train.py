@@ -55,8 +55,11 @@ def view_train_cross(X_trains, X_cross, Y_trains, Y_cross):
     print(Y_trains)
     print(X_trains.dtypes)
 
-# df = pd.read_csv('./data.csv')
-df = pd.read_csv('./sample_data/breast_cancer_data.csv')
+# use path below if in local machine
+df = pd.read_csv('./data.csv')
+
+# use path below if in google collab
+# df = pd.read_csv('./sample_data/breast_cancer_data.csv')
 
 # delete id diagnosis
 Y = df['diagnosis']
@@ -96,7 +99,7 @@ model = Sequential([
 model.compile(
     loss=BinaryCrossentropy(from_logits=True),
     optimizer=Adam(learning_rate=0.0075),
-    metrics=[BinaryCrossentropy(), BinaryAccuracy(threshold=0.5)]
+    metrics=[BinaryCrossentropy(from_logits=True), BinaryAccuracy(threshold=0.5)]
 )
 
 """## tuning techniques to use for improved learning
@@ -117,7 +120,7 @@ model.compile(
 
 history = model.fit(
     X_trains, Y_trains,
-    epochs=50,
+    epochs=100,
     validation_data=(X_cross, Y_cross)
 )
 
@@ -138,10 +141,13 @@ axis = figure.add_subplot()
 styles = [('p:', '#5d42f5'), ('h-', '#fc03a5'), ('o:', '#1e8beb'), ('x--','#1eeb8f'), ('+--', '#0eb802'), ('8-', '#f55600')]
 
 for index, (key, value) in enumerate(results.items()):
-  axis.plot(value, np.arange(1, 51), styles[index][0] ,color=styles[index][1], alpha=0.5, label=key)
+  axis.plot(np.array(history.epoch) + 1, value, styles[index][0] ,color=styles[index][1], alpha=0.5, label=key)
 
 axis.set_ylabel('metric value')
 axis.set_xlabel('epochs')
 axis.legend()
+plt.savefig('breast cancer classifier train and dev results.png')
 plt.show()
 
+# save baseline model
+model.save('./models/baseline_model.h5')
