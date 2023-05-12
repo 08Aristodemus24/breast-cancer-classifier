@@ -22,8 +22,8 @@ from tensorflow.keras.regularizers import L2
 from tensorflow.keras.layers import Dense
 from tensorflow.keras import Model, Input, Sequential
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import BinaryCrossentropy
-from tensorflow.keras.metrics import BinaryAccuracy
+from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
+from tensorflow.keras.metrics import BinaryAccuracy, BinaryCrossentropy as bce_metric
 
 """### check current working directory"""
 
@@ -97,9 +97,9 @@ model = Sequential([
 ])
 
 model.compile(
-    loss=BinaryCrossentropy(from_logits=True),
+    loss=bce_loss(from_logits=True),
     optimizer=Adam(learning_rate=0.0075),
-    metrics=[BinaryCrossentropy(from_logits=True), BinaryAccuracy(threshold=0.5)]
+    metrics=[bce_metric(), BinaryAccuracy(threshold=0.5)]
 )
 
 """## tuning techniques to use for improved learning
