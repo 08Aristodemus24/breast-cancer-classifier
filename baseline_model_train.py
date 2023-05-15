@@ -150,4 +150,4 @@ plt.savefig('breast cancer classifier train and dev results.png')
 plt.show()
 
 # save baseline model
-model.save('./models/baseline_model.h5')
+# model.save('./models/baseline_model.h5')
