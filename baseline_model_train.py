@@ -14,16 +14,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OrdinalEncoder
 
-import tensorflow as tf
-from tensorflow.nn import sigmoid
-from tensorflow.keras.regularizers import L2
-from tensorflow.keras.layers import Dense
-from tensorflow.keras import Model, Input, Sequential
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
-from tensorflow.keras.metrics import BinaryAccuracy, BinaryCrossentropy as bce_metric
+from utilities.data_preprocessor import preprocess
+from utilities.data_visualizer import view_train_cross
+from models.baseline_model_arc import load_baseline
+
+import json
 
 """### check current working directory"""
 
@@ -31,101 +27,30 @@ import os
 print(os.getcwd())
 
 """## loading the data"""
-
-def view_data_info(df):
-    Y = df['diagnosis']
-    X = df.loc[:, df.columns != 'diagnosis']
-
-    print(df.head())
-    print(df.shape)
-    print(df.columns[0:32])
-    print(df.loc[:, df.columns != 'Unnamed: 32'])
-
-    print(X.head())
-    print(Y.head())
-    print(X.shape)
-    print(Y.shape)
-    
-def view_train_cross(X_trains, X_cross, Y_trains, Y_cross):
-    print(X_trains.shape)
-    print(Y_trains.shape)
-    print(X_cross.shape)
-    print(Y_cross.shape)
-    print(X_trains)
-    print(Y_trains)
-    print(X_trains.dtypes)
-
 # use path below if in local machine
 df = pd.read_csv('./data.csv')
 
 # use path below if in google collab
 # df = pd.read_csv('./sample_data/breast_cancer_data.csv')
 
-# delete id diagnosis
-Y = df['diagnosis']
-
-# transform Y to 2-dim 1 x m matrix
-Y = Y.to_numpy().reshape(Y.shape[0], -1)
-
-X = df.drop(['id', 'Unnamed: 32', 'diagnosis'], axis=1, inplace=False)
-view_data_info(df)
-
-"""# preprocess data
-- normalize
-- encode to numerical values Y column
-"""
-
-# note that 1 is now the malignant class 
-# and 0 is the benign class/category
-oe = OrdinalEncoder()
-Y = oe.fit_transform(Y)
-Y
-
+X, Y = preprocess(df)
 X_trains, X_, Y_trains, Y_ = train_test_split(X, Y, test_size=0.3, random_state=0)
 X_cross, X_tests, Y_cross, Y_tests = train_test_split(X_, Y_, test_size=0.5, random_state=0)
-
 view_train_cross(X_trains, X_cross, Y_trains, Y_cross)
 
-"""## define model architecture"""
 
-model = Sequential([
-    Dense(units=10, activation='relu', ),
-    Dense(units=10, activation='relu', ),
-    Dense(units=10, activation='relu', ),
-    Dense(units=10, activation='relu', ),
-    Dense(units=1, activation='linear'),
-])
+"""## model training"""
+# import then load baseline model architecture
+model = load_baseline()
 
-model.compile(
-    loss=bce_loss(from_logits=True),
-    optimizer=Adam(learning_rate=0.0075),
-    metrics=[bce_metric(), BinaryAccuracy(threshold=0.5)]
-)
-
-"""## tuning techniques to use for improved learning
-- learning rate
-- num epochs
-- batch size
-- nodes per hidden layer
-- num layers
-- normalization
-- lambda
-- optimizer
-- hyper parameters of optimizer
-- feature selection
-- dropout
-
-## begin model training
-"""
-
+# begin model training
 history = model.fit(
     X_trains, Y_trains,
     epochs=100,
     validation_data=(X_cross, Y_cross)
 )
 
-"""## plot the history of accuracy and cost of model"""
-
+# plot the history of accuracy and cost of model
 results = {
     'train_loss': history.history['loss'],
     'train_binary_crossentropy': history.history['binary_crossentropy'],
@@ -135,6 +60,7 @@ results = {
     'cross_val_binary_accuracy': history.history['val_binary_accuracy']
 }
 
+"""## results visualization"""
 figure = plt.figure(figsize=(15, 10))
 axis = figure.add_subplot()
 
@@ -150,4 +76,8 @@ plt.savefig('breast cancer classifier train and dev results.png')
 plt.show()
 
 # save baseline model
-# model.save('./models/baseline_model.h5')
+model.save('./models/baseline_model.h5')
+
+# save results of trained model
+with open("./results/baseline_model_results.json", "w") as out_file:
+  json.dump(results, out_file)

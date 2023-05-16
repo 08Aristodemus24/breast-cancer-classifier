@@ -7,5 +7,5 @@ create virtual or conda environment (if conda use conda create -n <env name> pyt
 - <u> build baseline model </u>
 - build better tuned model
 - explore data and see graphs
-- extract the cost of the training of a model at the last epoch because by then weights are optimized
-- extract cross validation cost using model at last epoch as well since by then weights are optimized
+- extract the cost of the training of a model at the last epoch because by then weights are optimized. Do this in classifier-script.py
+- extract cross validation cost using model at last epoch as well since by then weights are optimized. Do this in classifier-script.py
