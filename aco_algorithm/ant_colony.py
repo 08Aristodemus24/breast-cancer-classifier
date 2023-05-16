@@ -46,7 +46,8 @@ class Ant:
 class Colony:
     def __init__(self, X, Y, epochs=15, num_sampled_features=15, num_ants=3, Q=1, tau_0=1, alpha=1, beta=1, rho=0.05):
         # X must be a 1024 x 100 matrix and Y must be 1 x 100 matrix
-        self.X_trains, self.X_cross, self.Y_trains, self.Y_cross = train_test_split(X, Y, test_size=0.3, random_state=0)
+        self.X = X
+        self.Y = Y
         
         # 1024 features
         self.num_features = X.shape[0]
@@ -128,13 +129,15 @@ class Colony:
                     j = self.roulette(P)
                     self.ants[k, 0].append_tour(j)
                 
-                print(self.ants[k, 0])
+                # print(self.ants[k, 0])
                 cost, output = self.J(self.ants[k, 0].tour, self.num_sampled_features, {
                     'X': self.X,
                     'Y': self.Y,
                     'num_features': self.num_features,
                     'num_instances': self.num_instances
                 })
+
+                print(cost, output)
 
             #     # calculate cost given the paths made by the and
             #     cost, out = self.J()
@@ -171,43 +174,48 @@ class Colony:
 
         data - is a dictionary of X, Y, num_features, and num_instances"""
 
+        
+
         # read data
         X = data['X']
         Y = data['Y']
+        print(f'X: {X}\n')
+        print(f'Y: {Y}\n')
 
         # select the paths in q of length 1 to num_features - 1 
         # made by ant k from 1 to nf which recall is 15 by default
         selected_paths = paths[0:num_sampled_features]
-        print(selected_paths)
+        print(f'selected paths: {selected_paths}\n')
+        print(f'features selected: {X.columns[selected_paths]}\n')
 
         # calculate ratio of number of features to 
         # sample to length of tour/path made by ant k
         paths_len = len(paths)
         ratio = num_sampled_features / paths_len
-        print(ratio)
+        print(f'ratio: {ratio}\n')
 
         # recall 1024 x 100 matrix
         # print(X)
         # print(X.index)
         # print(X.iloc[selected_paths].index)
         selected_X = X.iloc[selected_paths]
-        print(selected_X)
+        print(f'selected X: {selected_X}\n')
 
         # train and test error ratios
         train_error_ratio = 0.7
         cross_error_ratio = 1 - train_error_ratio
 
-        # train neural network
+        # trains a neural network over n_runs times and calculates the average
+        # cost in these trained models which mind you is trained on the same dataset
         n_runs = 3
         EE = np.zeros((n_runs,))
         for r in range(n_runs):
-            # some Neural Network class
+            # train the neural network
+            results = self.train(X, Y)
 
-            results = 0
-
-            # calculate overall error in both training and cross
-            # validation datasets
-            EE[r] = (train_error_ratio * results['train_data'].error) + (cross_error_ratio * results['cross_data'].error)
+            # calculate overall error in both training 
+            # and cross validation datasets
+            EE[r] = (train_error_ratio * results['train_binary_crossentropy']) + (cross_error_ratio * results['cross_binary_crossentropy'])
 
         # calculate the average of all errors or all errors
         # divded by number of training and testing examples
@@ -240,8 +248,29 @@ class Colony:
         # a true/1 value in the bools array 
         return np.where(bools == 1)[0][0]
 
-    def train(self):
-        model = load_baseline()
-        model.fit(
+    def train(self, X, Y):
+        X_trains, X_, Y_trains, Y_ = train_test_split(X, Y, test_size=0.3, random_state=0)
+        X_cross, X_tests, Y_cross, Y_tests = train_test_split(X_, Y_, test_size=0.5, random_state=0)
 
+        # import and load baseline model
+        model = load_baseline()
+
+        # train baseline model
+        history = model.fit(
+            X_trains, Y_trains,
+            epochs=100,
+            validation_data=(X_cross, Y_cross)
         )
+
+        # # extract the history of accuracy and cost of model
+        results = {
+            'train_loss': history.history['loss'],
+            'train_binary_crossentropy': history.history['binary_crossentropy'],
+            'train_binary_accuracy': history.history['binary_accuracy'],
+            'cross_val_loss': history.history['val_loss'],
+            'cross_val_binary_crossentropy': history.history['val_binary_crossentropy'],
+            'cross_val_binary_accuracy': history.history['val_binary_accuracy']
+        }
+
+        # return results of model
+        return results

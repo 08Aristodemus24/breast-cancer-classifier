@@ -9,3 +9,4 @@ create virtual or conda environment (if conda use conda create -n <env name> pyt
 - explore data and see graphs
 - extract the cost of the training of a model at the last epoch because by then weights are optimized. Do this in classifier-script.py
 - extract cross validation cost using model at last epoch as well since by then weights are optimized. Do this in classifier-script.py
+- how do I organize baseline_model_train, in such a way where I can just call a train function 

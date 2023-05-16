@@ -50,7 +50,7 @@ history = model.fit(
     validation_data=(X_cross, Y_cross)
 )
 
-# plot the history of accuracy and cost of model
+# extract the history of accuracy and cost of model
 results = {
     'train_loss': history.history['loss'],
     'train_binary_crossentropy': history.history['binary_crossentropy'],
