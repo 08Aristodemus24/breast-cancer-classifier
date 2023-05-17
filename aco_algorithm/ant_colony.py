@@ -1,7 +1,8 @@
 import numpy as np # linear algebra
 from sklearn.model_selection import train_test_split
-from models.baseline_model_arc import load_baseline
 
+from models.baseline_model_arc import load_baseline
+from utilities.data_visualizer import view_train_cross, train_cross_results
 
 class Ant:
     def __init__(self):
@@ -129,7 +130,9 @@ class Colony:
                     j = self.roulette(P)
                     self.ants[k, 0].append_tour(j)
                 
-                # print(self.ants[k, 0])
+
+                
+                # calculate cost given the paths made by the and
                 cost, output = self.J(self.ants[k, 0].tour, self.num_sampled_features, {
                     'X': self.X,
                     'Y': self.Y,
@@ -139,31 +142,30 @@ class Colony:
 
                 print(cost, output)
 
-            #     # calculate cost given the paths made by the and
-            #     cost, out = self.J()
-            #     if cost < self.best_ant_cost:
-            #         pass
-            #         # self.best_ant = cost
+                
+                if cost < self.best_ant_cost:
+                    pass
+                    # self.best_ant = cost
 
-            # # updating pheromones for positive feedback
-            # for k in range(self.ants):
-            #     # append the first node to the whole path made by ant
-            #     tour = np.append(self.ants[k, 0].tour, self.ants[k, 0].tour[0])
+            # updating pheromones for positive feedback
+            for k in range(self.ants):
+                # append the first node to the whole path made by ant
+                tour = np.append(self.ants[k, 0].tour, self.ants[k, 0].tour[0])
 
-            #     # go through now all features from index [0] to [1023] 
-            #     for l in range(self.num_features):
-            #         i = tour[l]
-            #         j = tour[l + 1]
-            #         self.tau[i, j] = self.tau[i, j] + self.Q / self.ants[k, 0].cost
+                # go through now all features from index [0] to [1023] 
+                for l in range(self.num_features):
+                    i = tour[l]
+                    j = tour[l + 1]
+                    self.tau[i, j] = self.tau[i, j] + self.Q / self.ants[k, 0].cost
 
-            # # updating evaporation rate for negative feedback
-            # self.tau = (1 - self.rho) * self.tau
+            # updating evaporation rate for negative feedback
+            self.tau = (1 - self.rho) * self.tau
 
-            # # store the best cost
-            # self.best_cost.append(self.best_ant_cost)
+            # store the best cost
+            self.best_cost.append(self.best_ant_cost)
 
-            # if epoch % 10 == 0:
-            #     print(f'{epoch}\n')
+            if epoch % 10 == 0:
+                print(f'{epoch}\n')
 
     def J(self, paths, num_sampled_features, data):
         """paths - is the built path by ant k which is of length 1 to num features - 1 inclusively
@@ -174,13 +176,11 @@ class Colony:
 
         data - is a dictionary of X, Y, num_features, and num_instances"""
 
-        
-
         # read data
         X = data['X']
         Y = data['Y']
-        print(f'X: {X}\n')
-        print(f'Y: {Y}\n')
+        # print(f'X: {X}\n')
+        # print(f'Y: {Y}\n')
 
         # select the paths in q of length 1 to num_features - 1 
         # made by ant k from 1 to nf which recall is 15 by default
@@ -215,7 +215,7 @@ class Colony:
 
             # calculate overall error in both training 
             # and cross validation datasets
-            EE[r] = (train_error_ratio * results['train_binary_crossentropy']) + (cross_error_ratio * results['cross_binary_crossentropy'])
+            EE[r] = (train_error_ratio * results['train_binary_crossentropy'][-1]) + (cross_error_ratio * results['cross_val_binary_crossentropy'][-1])
 
         # calculate the average of all errors or all errors
         # divded by number of training and testing examples
@@ -249,8 +249,11 @@ class Colony:
         return np.where(bools == 1)[0][0]
 
     def train(self, X, Y):
-        X_trains, X_, Y_trains, Y_ = train_test_split(X, Y, test_size=0.3, random_state=0)
+        # print(f'selected X shape: {X.shape}\n')
+        # print(f'selected Y shape: {Y.shape}\n')
+        X_trains, X_, Y_trains, Y_ = train_test_split(X.T, Y.T, test_size=0.3, random_state=0)
         X_cross, X_tests, Y_cross, Y_tests = train_test_split(X_, Y_, test_size=0.5, random_state=0)
+        view_train_cross(X_trains, X_cross, Y_trains, Y_cross)
 
         # import and load baseline model
         model = load_baseline()
@@ -271,6 +274,9 @@ class Colony:
             'cross_val_binary_crossentropy': history.history['val_binary_crossentropy'],
             'cross_val_binary_accuracy': history.history['val_binary_accuracy']
         }
+
+        # visualize resulting model
+        train_cross_results(history, results)
 
         # return results of model
         return results

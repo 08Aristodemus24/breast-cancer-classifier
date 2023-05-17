@@ -1,4 +1,6 @@
-import pandas as pd
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 def view_data_info(df):
     Y = df['diagnosis']
@@ -22,3 +24,18 @@ def view_train_cross(X_trains, X_cross, Y_trains, Y_cross):
     print(X_trains)
     print(Y_trains)
     print(X_trains.dtypes)
+
+def train_cross_results(history, results):
+    figure = plt.figure(figsize=(15, 10))
+    axis = figure.add_subplot()
+
+    styles = [('p:', '#5d42f5'), ('h-', '#fc03a5'), ('o:', '#1e8beb'), ('x--','#1eeb8f'), ('+--', '#0eb802'), ('8-', '#f55600')]
+
+    for index, (key, value) in enumerate(results.items()):
+        axis.plot(np.array(history.epoch) + 1, value, styles[index][0] ,color=styles[index][1], alpha=0.5, label=key)
+
+    axis.set_ylabel('metric value')
+    axis.set_xlabel('epochs')
+    axis.legend()
+    plt.savefig('breast cancer classifier train and dev results.png')
+    plt.show()
