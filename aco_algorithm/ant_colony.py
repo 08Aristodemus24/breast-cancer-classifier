@@ -172,7 +172,7 @@ class Colony:
             if epoch % 10 == 0:
                 print(f'{epoch}\n')
 
-            return self.best_ants
+        return self.best_ants
 
     def J(self, curr_epoch, curr_ant, paths, num_sampled_features, data):
         """paths - is the built path by ant k which is of length 1 to num features - 1 inclusively
