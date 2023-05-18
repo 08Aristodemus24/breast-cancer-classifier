@@ -23,3 +23,4 @@ create virtual or conda environment (if conda use conda create -n <env name> pyt
 - <u>need to figure out how to accumulate the train_loss, train_accuracy, and train binary_cross_entropy at each run</u>
 - add early stopping since cross validation cost tends to go up on some occassions as epochs go by
 - why isn't train loss and cross validation loss not being shown
+- implement saving all the best ants at each epoch to a file
