@@ -1,4 +1,4 @@
-from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 import pandas as pd
 
 def preprocess(df):
@@ -7,16 +7,23 @@ def preprocess(df):
     - encode to numerical values Y column
     """
 
-    # delete id diagnosis
+    # extract diagnosis as Y
     Y = df['diagnosis']
 
     # transform Y to 2-dim 1 x m matrix
     Y = Y.to_numpy().reshape(Y.shape[0], -1)
 
-    X = df.drop(['id', 'Unnamed: 32', 'diagnosis'], axis=1, inplace=False)
-
     # note that 1 is now the malignant class 
     # and 0 is the benign class/category
     oe = OrdinalEncoder()
     Y = oe.fit_transform(Y)
-    return X, Y
+
+    # drop unnecessary columns
+    X = df.drop(['id', 'Unnamed: 32', 'diagnosis'], axis=1, inplace=False)
+    df_columns = X.columns
+    # normalize X
+    scaler = StandardScaler()
+    X_normed = pd.DataFrame(scaler.fit_transform(X), columns=df_columns)
+
+
+    return X_normed, Y

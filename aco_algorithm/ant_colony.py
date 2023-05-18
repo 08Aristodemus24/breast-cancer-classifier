@@ -3,12 +3,13 @@ from sklearn.model_selection import train_test_split
 
 from models.baseline_model_arc import load_baseline
 from utilities.data_visualizer import view_train_cross, train_cross_results
+from tensorflow.keras.callbacks import EarlyStopping
 
 class Ant:
     def __init__(self):
         self._tour = []
-        self._cost = []
-        self._output = []
+        self._cost = np.inf
+        self._output = np.inf
 
     def __str__(self):
         return f"""
@@ -33,15 +34,17 @@ class Ant:
     def cost(self):
         return self._cost
     
-    def append_cost(self, val):
-        self._cost.append(val)
+    @cost.setter
+    def cost(self, val):
+        self._cost = val
 
     @property
     def output(self):
         return self._output
     
-    def append_output(self, val):
-        self._output.append(val)
+    @output.setter
+    def output(self, val):
+        self._output = val
         
 
 class Colony:
@@ -79,11 +82,12 @@ class Colony:
         
         # list to hold best cost values out of all ants in each iteration
         # e.g. ant 1 out of all ants holds best path/cost of iteration/epoch 1
-        self.best_cost = []
+        self.best_ants = []
+
         self.ants = np.empty(shape=(num_ants, 1), dtype=np.dtype(Ant))
         
-        # initially best ant cost is an infinite value
-        self.best_ant_cost = np.inf
+        # initially best ants cost is an infinite value
+        self.best_ant = Ant()
         
     def run(self):
         # loop from 0 to 14
@@ -133,22 +137,23 @@ class Colony:
 
                 
                 # calculate cost given the paths made by the and
-                cost, output = self.J(self.ants[k, 0].tour, self.num_sampled_features, {
+                cost, output = self.J(epoch, k, self.ants[k, 0].tour, self.num_sampled_features, {
                     'X': self.X,
                     'Y': self.Y,
                     'num_features': self.num_features,
                     'num_instances': self.num_instances
-                })
+                }) 
 
-                print(cost, output)
+                self.ants[k, 0].cost = cost
+                self.ants[k, 0].output = output
 
-                
-                if cost < self.best_ant_cost:
-                    pass
-                    # self.best_ant = cost
+                # use current cost of ant k at iteration i and compare
+                # to current best ant cost
+                if self.ants[k, 0].cost < self.best_ant.cost:
+                    self.best_ant = self.ants[k, 0]
 
             # updating pheromones for positive feedback
-            for k in range(self.ants):
+            for k in range(self.num_ants):
                 # append the first node to the whole path made by ant
                 tour = np.append(self.ants[k, 0].tour, self.ants[k, 0].tour[0])
 
@@ -161,13 +166,15 @@ class Colony:
             # updating evaporation rate for negative feedback
             self.tau = (1 - self.rho) * self.tau
 
-            # store the best cost
-            self.best_cost.append(self.best_ant_cost)
+            # store the ant with the best cost
+            self.best_ants.append(self.best_ant)
 
             if epoch % 10 == 0:
                 print(f'{epoch}\n')
 
-    def J(self, paths, num_sampled_features, data):
+            return self.best_ants
+
+    def J(self, curr_epoch, curr_ant, paths, num_sampled_features, data):
         """paths - is the built path by ant k which is of length 1 to num features - 1 inclusively
         with values 0 to 1023 since indeces of P are used
 
@@ -179,8 +186,6 @@ class Colony:
         # read data
         X = data['X']
         Y = data['Y']
-        # print(f'X: {X}\n')
-        # print(f'Y: {Y}\n')
 
         # select the paths in q of length 1 to num_features - 1 
         # made by ant k from 1 to nf which recall is 15 by default
@@ -192,41 +197,70 @@ class Colony:
         # sample to length of tour/path made by ant k
         paths_len = len(paths)
         ratio = num_sampled_features / paths_len
-        print(f'ratio: {ratio}\n')
 
         # recall 1024 x 100 matrix
         # print(X)
         # print(X.index)
         # print(X.iloc[selected_paths].index)
         selected_X = X.iloc[selected_paths]
-        print(f'selected X: {selected_X}\n')
+        # print(f'selected X: {selected_X}\n')
 
         # train and test error ratios
-        train_error_ratio = 0.7
-        cross_error_ratio = 1 - train_error_ratio
+        train_ratio = 0.7
+        cross_ratio = 1 - train_ratio
 
         # trains a neural network over n_runs times and calculates the average
         # cost in these trained models which mind you is trained on the same dataset
         n_runs = 3
-        EE = np.zeros((n_runs,))
+        OVERALL_COST = np.zeros((n_runs,))
+
+        TRAIN_COST = 0.0
+        CROSS_VAL_COST = 0.0
+        TRAIN_ACC = 0.0
+        CROSS_VAL_ACC = 0.0
+        TRAIN_LOSS = 0.0
+        CROSS_VAL_LOSS = 0.0
+
         for r in range(n_runs):
             # train the neural network
-            results = self.train(X, Y)
+            results = self.train(selected_X, Y)
+
+            TRAIN_COST += results['train_binary_crossentropy']
+            CROSS_VAL_COST += results['cross_val_binary_crossentropy']
+            TRAIN_ACC += results['train_binary_accuracy']
+            CROSS_VAL_ACC += results['cross_val_binary_accuracy']
+            TRAIN_LOSS += results['train_loss']
+            CROSS_VAL_LOSS += results['cross_val_loss']
 
             # calculate overall error in both training 
             # and cross validation datasets
-            EE[r] = (train_error_ratio * results['train_binary_crossentropy'][-1]) + (cross_error_ratio * results['cross_val_binary_crossentropy'][-1])
+            OVERALL_COST[r] = (train_ratio * results['train_binary_crossentropy'][-1]) + (cross_ratio * results['cross_val_binary_crossentropy'][-1])
+
+
+        print(f'train cost shape: {TRAIN_COST.shape}')
+
+        # visualize resulting model and get the average of all losses
+        # costs, accuracies of all these models values across the number of runs
+        train_cross_results(curr_epoch, curr_ant, {
+            'train_loss': TRAIN_LOSS / n_runs,
+            'train_binary_crossentropy': TRAIN_COST / n_runs,
+            'train_binary_accuracy': TRAIN_ACC / n_runs,
+            'cross_val_loss': CROSS_VAL_LOSS / n_runs,
+            'cross_val_binary_crossentropy': CROSS_VAL_COST / n_runs,
+            'cross_val_binary_accuracy': CROSS_VAL_ACC / n_runs
+        })
 
         # calculate the average of all errors or all errors
         # divded by number of training and testing examples
         # calculate and set final cost
-        cost = np.mean(EE)
+        cost = OVERALL_COST.mean()
+        print(f'cost: {cost}\n')
 
         output = {
             'selected_paths': selected_paths,
             'num_sampled_features': num_sampled_features,
             'ratio': ratio,
-            'error': cost,
+            'cost': OVERALL_COST,
         }
 
         return [cost, output]
@@ -258,25 +292,27 @@ class Colony:
         # import and load baseline model
         model = load_baseline()
 
+        # if cross validation loss does not improve after 10 
+        # consecutive epochs we stop training our model early
+        # stop_early = EarlyStopping(monitor='val_loss', patience=10)
+
         # train baseline model
         history = model.fit(
             X_trains, Y_trains,
             epochs=100,
-            validation_data=(X_cross, Y_cross)
+            validation_data=(X_cross, Y_cross),
+            # callbacks=[stop_early]
         )
 
-        # # extract the history of accuracy and cost of model
+        # extract the history of accuracy and cost of model
         results = {
-            'train_loss': history.history['loss'],
-            'train_binary_crossentropy': history.history['binary_crossentropy'],
-            'train_binary_accuracy': history.history['binary_accuracy'],
-            'cross_val_loss': history.history['val_loss'],
-            'cross_val_binary_crossentropy': history.history['val_binary_crossentropy'],
-            'cross_val_binary_accuracy': history.history['val_binary_accuracy']
+            'train_loss': np.array(history.history['loss']),
+            'train_binary_crossentropy': np.array(history.history['binary_crossentropy']),
+            'train_binary_accuracy': np.array(history.history['binary_accuracy']),
+            'cross_val_loss': np.array(history.history['val_loss']),
+            'cross_val_binary_crossentropy': np.array(history.history['val_binary_crossentropy']),
+            'cross_val_binary_accuracy': np.array(history.history['val_binary_accuracy'])
         }
-
-        # visualize resulting model
-        train_cross_results(history, results)
 
         # return results of model
         return results

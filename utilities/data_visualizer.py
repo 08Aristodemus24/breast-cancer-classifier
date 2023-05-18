@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -25,15 +24,17 @@ def view_train_cross(X_trains, X_cross, Y_trains, Y_cross):
     print(Y_trains)
     print(X_trains.dtypes)
 
-def train_cross_results(history, results):
+def train_cross_results(curr_epoch, curr_ant, results, epochs=100):
+    print(f'results: {results}\n')
     figure = plt.figure(figsize=(15, 10))
     axis = figure.add_subplot()
 
     styles = [('p:', '#5d42f5'), ('h-', '#fc03a5'), ('o:', '#1e8beb'), ('x--','#1eeb8f'), ('+--', '#0eb802'), ('8-', '#f55600')]
 
     for index, (key, value) in enumerate(results.items()):
-        axis.plot(np.array(history.epoch) + 1, value, styles[index][0] ,color=styles[index][1], alpha=0.5, label=key)
+        axis.plot(np.arange(epochs) + 1, value, styles[index][0] ,color=styles[index][1], alpha=0.5, label=key)
 
+    axis.set_title(f'ant {curr_ant} at epoch {curr_epoch}')
     axis.set_ylabel('metric value')
     axis.set_xlabel('epochs')
     axis.legend()

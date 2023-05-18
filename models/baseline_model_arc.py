@@ -32,7 +32,7 @@ def load_baseline():
     model.compile(
         loss=bce_loss(from_logits=True),
         optimizer=Adam(learning_rate=0.001),
-        metrics=[bce_metric(), BinaryAccuracy(threshold=0.5)]
+        metrics=[bce_metric(from_logits=True), BinaryAccuracy(threshold=0.5)]
     )
 
     return model
