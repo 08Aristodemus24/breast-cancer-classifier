@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 
 from utilities.data_preprocessor import preprocess
 from utilities.data_visualizer import view_train_cross
-from models.baseline_model_arc import load_baseline
+from models.model_arcs import load_baseline
 
 import json
 

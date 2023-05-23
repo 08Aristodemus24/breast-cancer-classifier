@@ -40,5 +40,5 @@ def load_baseline():
     return model
 
 def load_tuned():
-    # define model architecture
+    # define model architecture using results from search_best_params notebook
     json.load('')

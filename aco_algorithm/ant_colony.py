@@ -1,7 +1,7 @@
 import numpy as np # linear algebra
 from sklearn.model_selection import train_test_split
 
-from models.baseline_model_arc import load_baseline
+from models.model_arcs import load_baseline
 from utilities.data_visualizer import view_train_cross, train_cross_results
 
 class Ant:
