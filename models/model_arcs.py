@@ -19,6 +19,8 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
 from tensorflow.keras.metrics import BinaryAccuracy, BinaryCrossentropy as bce_metric
 
+import json
+
 def load_baseline():
     # define model architecture
     model = Sequential([
@@ -36,3 +38,7 @@ def load_baseline():
     )
 
     return model
+
+def load_tuned():
+    # define model architecture
+    json.load('')
