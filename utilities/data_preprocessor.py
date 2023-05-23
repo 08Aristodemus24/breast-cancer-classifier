@@ -1,7 +1,7 @@
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 import pandas as pd
 
-def preprocess(df):
+def preprocess(df, feat_idxs: str | list[int]='all'):
     """# preprocess data
     - normalize
     - encode to numerical values Y column
@@ -20,11 +20,13 @@ def preprocess(df):
 
     # drop unnecessary columns
     X = df.drop(['id', 'Unnamed: 32', 'diagnosis'], axis=1, inplace=False)
+    X = X if 'all' else X.loc[:, feat_idxs]
     df_columns = X.columns
     
     # normalize X
     scaler = StandardScaler()
     X_normed = pd.DataFrame(scaler.fit_transform(X), columns=df_columns)
 
+    
 
     return X_normed, Y

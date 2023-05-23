@@ -72,7 +72,7 @@ for index, (key, value) in enumerate(results.items()):
 axis.set_ylabel('metric value')
 axis.set_xlabel('epochs')
 axis.legend()
-plt.savefig('breast cancer classifier train and dev results.png')
+plt.savefig('./figures/breast cancer classifier train and dev results.png')
 plt.show()
 
 # save baseline model
