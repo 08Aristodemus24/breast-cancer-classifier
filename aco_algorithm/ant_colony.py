@@ -259,7 +259,7 @@ class Colony:
             'selected_paths': selected_paths,
             'num_sampled_features': num_sampled_features,
             'ratio': ratio,
-            'cost': OVERALL_COST,
+            'cost': cost,
         }
 
         return [cost, output]
