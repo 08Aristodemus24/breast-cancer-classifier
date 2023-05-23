@@ -39,6 +39,27 @@ def load_baseline():
 
     return model
 
-def load_tuned():
+def load_tuned(param_file_path: dict=''):
     # define model architecture using results from search_best_params notebook
-    json.load('')
+    with open(param_file_path) as in_file:
+        hp_str = in_file.read()
+  
+    best_hyper_params = json.loads(hp_str)
+
+    print(best_hyper_params)
+
+    model = Sequential([
+        Dense(units=best_hyper_params['layer_1'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
+        Dense(units=best_hyper_params['layer_2'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
+        Dense(units=best_hyper_params['layer_3'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
+        Dense(units=best_hyper_params['layer_4'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
+        Dense(units=1, activation='linear', kernel_regularizer=L2(best_hyper_params['lambda'])),
+    ])
+
+    model.compile(
+        loss=bce_loss(from_logits=True),
+        optimizer=Adam(learning_rate=best_hyper_params['learning_rate']),
+        metrics=[bce_metric(from_logits=True), BinaryAccuracy(threshold=0.5)]
+    )
+
+    return model
