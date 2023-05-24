@@ -230,6 +230,12 @@ class Colony:
             TRAIN_LOSS += results['train_loss']
             CROSS_VAL_LOSS += results['cross_val_loss']
 
+            # USE OF ORIGINAL DATASET IS BETTER THAN REDUCED DATASET BUG HERE
+            # maybe try multiplying train ratio to whole results['train_binary_crossentropy'] array not just last element
+            # adding to cross ratio multiplied by results['cross_val_binary_crossentropy'] array not just last element then accumulate
+            # OVERALL_COST += (train_ratio * results['train_binary_crossentropy']) + (cross_ratio * results['cross_val_binary_crossentropy'])
+            # then after loop OVERALL_COST / n_runs
+
             # calculate overall error in both training 
             # and cross validation datasets
             OVERALL_COST[r] = (train_ratio * results['train_binary_crossentropy'][-1]) + (cross_ratio * results['cross_val_binary_crossentropy'][-1])
