@@ -28,7 +28,7 @@ def view_train_cross(X_trains, X_cross, Y_trains, Y_cross):
     print(X_trains.dtypes)
 
 
-def train_cross_results(curr_epoch, curr_ant, results, visualize=True, epochs=100):
+def train_cross_results(curr_epoch: int, curr_ant: int, results: dict, visualize: bool=True, epochs=100):
     # use matplotlib backend
     mpl.use('Agg')
 
@@ -57,9 +57,9 @@ def train_cross_results(curr_epoch, curr_ant, results, visualize=True, epochs=10
     del figure
 
 
-def train_cross_results_v2(results, epochs=100):
-    # use matplotlib backend
-    mpl.use('Agg')
+def train_cross_results_v2(results: dict, epochs=100):
+    # # use matplotlib backend
+    # mpl.use('Agg')
 
     figure = plt.figure(figsize=(15, 10))
     axis = figure.add_subplot()
@@ -67,7 +67,7 @@ def train_cross_results_v2(results, epochs=100):
     styles = [('p:', '#5d42f5'), ('h-', '#fc03a5'), ('o:', '#1e8beb'), ('x--','#1eeb8f'), ('+--', '#0eb802'), ('8-', '#f55600')]
 
     for index, (key, value) in enumerate(results.items()):
-        axis.plot(np.arange(epochs) + 1, value, styles[index][0] ,color=styles[index][1], alpha=0.5, label=key)
+        axis.plot(np.arange(epochs + 1), value, styles[index][0] ,color=styles[index][1], alpha=0.5, label=key)
 
     axis.set_ylabel('metric value')
     axis.set_xlabel('epochs')
@@ -78,6 +78,11 @@ def train_cross_results_v2(results, epochs=100):
 
     # delete figure
     del figure
+
+def view_final_metrics(results: dict, label: str):
+    print(f'\n{label}:')
+    for key, item in results.items():
+        print(f'{key}: {item[-1]}')
     
 
     

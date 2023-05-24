@@ -11,10 +11,9 @@ Original file is located at
 """
 
 import tensorflow as tf
-from tensorflow.nn import sigmoid
 from tensorflow.keras.regularizers import L2
 from tensorflow.keras.layers import Dense
-from tensorflow.keras import Model, Input, Sequential
+from tensorflow.keras import Sequential
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
 from tensorflow.keras.metrics import BinaryAccuracy, BinaryCrossentropy as bce_metric
@@ -43,8 +42,8 @@ def load_tuned(param_file_path: dict=''):
     # define model architecture using results from search_best_params notebook
     with open(param_file_path) as in_file:
         hp_str = in_file.read()
-  
-    best_hyper_params = json.loads(hp_str)
+        best_hyper_params = json.loads(hp_str)
+        in_file.close()
 
     print(best_hyper_params)
 

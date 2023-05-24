@@ -25,6 +25,7 @@ create virtual or conda environment (if conda use conda create -n <env name> pyt
 - add early stopping since cross validation cost tends to go up on some occassions as epochs go by
 - <u>why isn't train loss and cross validation loss not being shown?</u>
 - <u>implement saving all the best ants at each epoch to a file</u>
+- problem to solve is the fact that results in reduced dataset is significantly less better than the original dataset, when it must be the case that the reduced dataset ought to have better results
 
 
 **3rd PHASE: training baseline model and tuned model**
