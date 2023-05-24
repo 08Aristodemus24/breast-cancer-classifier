@@ -46,12 +46,12 @@ def train_cross_results(curr_epoch: int, curr_ant: int, results: dict, visualize
     axis.set_xlabel('epochs')
     axis.legend()
 
+    # save figure
+    plt.savefig(f'./figures/ant {curr_ant} at epoch {curr_epoch}.png')
+
     # showonly if visualize arg is true
     if visualize is True:
         plt.show()
-
-    # save figure
-    plt.savefig(f'./figures/ant {curr_ant} at epoch {curr_epoch}.png')
 
     # delete figure
     del figure
@@ -73,8 +73,9 @@ def train_cross_results_v2(results: dict, epochs=100):
     axis.set_xlabel('epochs')
     axis.legend()
 
-    plt.show()
     plt.savefig('./figures/baseline breast cancer classifier train and dev results.png')
+    plt.show()
+    
 
     # delete figure
     del figure
