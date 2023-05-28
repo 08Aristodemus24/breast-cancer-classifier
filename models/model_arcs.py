@@ -38,7 +38,7 @@ def load_baseline():
 
     return model
 
-def load_tuned(param_file_path: dict=''):
+def load_tuned(param_file_path: str):
     # define model architecture using results from search_best_params notebook
     with open(param_file_path) as in_file:
         hp_str = in_file.read()
