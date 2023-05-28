@@ -47,6 +47,7 @@ def load_tuned(param_file_path: str):
 
     print(best_hyper_params)
 
+    # update this such that number of layers are not static but dynamic
     model = Sequential([
         Dense(units=best_hyper_params['layer_1'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
         Dense(units=best_hyper_params['layer_2'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
