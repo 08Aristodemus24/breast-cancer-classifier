@@ -12,7 +12,7 @@ Original file is located at
 
 import tensorflow as tf
 from tensorflow.keras.regularizers import L2
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras import Sequential
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
@@ -46,20 +46,29 @@ def load_tuned(param_file_path: str):
         in_file.close()
 
     print(best_hyper_params)
-
+    
     # update this such that number of layers are not static but dynamic
-    model = Sequential([
-        Dense(units=best_hyper_params['layer_1'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
-        Dense(units=best_hyper_params['layer_2'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
-        Dense(units=best_hyper_params['layer_3'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
-        Dense(units=best_hyper_params['layer_4'], activation=best_hyper_params['activation'], kernel_regularizer=L2(best_hyper_params['lambda'])),
-        Dense(units=1, activation='linear', kernel_regularizer=L2(best_hyper_params['lambda'])),
-    ])
+    model = Sequential()
 
+    # number of hidden layers
+    for l in range(best_hyper_params['layer_num']):
+        print(f'building layer {l + 1}')
+        
+        # number of nodes per layer
+        model.add(Dense(
+            units=best_hyper_params[f'layer_{l + 1}'], 
+            activation=best_hyper_params['activation'], 
+            kernel_initializer=best_hyper_params['initializer'],
+            kernel_regularizer=L2(best_hyper_params['lambda'])))
+        
+        model.add(Dropout(best_hyper_params['dropout']))
+
+    model.add(Dense(units=1, activation='linear', kernel_regularizer=L2(best_hyper_params['lambda'])))
+    
     model.compile(
+        optimizer=best_hyper_params['optimizer'](learning_rate=best_hyper_params['learning_rate']),
         loss=bce_loss(from_logits=True),
-        optimizer=Adam(learning_rate=best_hyper_params['learning_rate']),
-        metrics=[bce_metric(from_logits=True), BinaryAccuracy(threshold=0.5)]
+        metrics=[bce_metric(), BinaryAccuracy(threshold=0.5)]
     )
 
     return model

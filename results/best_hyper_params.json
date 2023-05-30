@@ -1,1 +1,1 @@
-{"layer_0": 101, "layer_1": 801, "activation": "tanh", "learning_rate": 0.0075, "lambda": 0.25, "optimizers": "Nadam", "dropout": 0.3, "kernel_initializer": "HeUniform"}
+{"layer_1": 901, "layer_2": 501, "layer_3": 201, "layer_4": 401, "layer_5": 701, "layer_6": 601, "activation": "tanh", "learning_rate": 1.2, "lambda": 0.9, "optimizer": "Adadelta", "dropout": 0.1, "initializer": "HeUniform", "layer_num": 6}
