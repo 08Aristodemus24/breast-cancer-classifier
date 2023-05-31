@@ -17,6 +17,8 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy as bce_loss
 from tensorflow.keras.metrics import BinaryAccuracy, BinaryCrossentropy as bce_metric
+from tensorflow.keras.initializers import GlorotNormal, GlorotUniform, RandomNormal, RandomUniform, HeNormal, HeUniform
+from tensorflow.keras.optimizers import Adadelta, Adafactor, Adagrad, Adam, AdamW, Adamax, Ftrl, Nadam, RMSprop, SGD 
 
 import json
 
@@ -46,7 +48,36 @@ def load_tuned(param_file_path: str):
         in_file.close()
 
     print(best_hyper_params)
+
+    alt_hyper_params = {
+        'learning_rate': 0.0075,
+        'lambda': 0.9,
+        'activation': 'relu',
+        'optimizer': 'Adam'
+    }
     
+    initializers = {
+        'GlorotNormal': GlorotNormal(),
+        'GlorotUniform': GlorotUniform(),
+        'RandomNormal': RandomNormal(mean=0.0, stddev=1.0),
+        'RandomUniform': RandomUniform(minval=-0.05, maxval=0.05),
+        'HeNormal': HeNormal(),
+        'HeUniform': HeUniform()
+    }
+
+    optimizers = {
+        'Adadelta': Adadelta(learning_rate=alt_hyper_params['learning_rate']),
+        'Adafactor': Adafactor(learning_rate=alt_hyper_params['learning_rate']),
+        'Adagrad': Adagrad(learning_rate=alt_hyper_params['learning_rate']),
+        'Adam': Adam(learning_rate=alt_hyper_params['learning_rate']),
+        'AdamW': AdamW(learning_rate=alt_hyper_params['learning_rate']),
+        'Adamax': Adamax(learning_rate=alt_hyper_params['learning_rate']), 
+        'Ftrl': Ftrl(learning_rate=alt_hyper_params['learning_rate']),
+        'Nadam': Nadam(learning_rate=alt_hyper_params['learning_rate']),
+        'RMSprop': RMSprop(learning_rate=alt_hyper_params['learning_rate']),
+        'SGD': SGD(learning_rate=alt_hyper_params['learning_rate'])
+    }
+
     # update this such that number of layers are not static but dynamic
     model = Sequential()
 
@@ -57,16 +88,16 @@ def load_tuned(param_file_path: str):
         # number of nodes per layer
         model.add(Dense(
             units=best_hyper_params[f'layer_{l + 1}'], 
-            activation=best_hyper_params['activation'], 
-            kernel_initializer=best_hyper_params['initializer'],
-            kernel_regularizer=L2(best_hyper_params['lambda'])))
+            activation=alt_hyper_params['activation'], 
+            kernel_initializer=initializers[best_hyper_params['initializer']],
+            kernel_regularizer=L2(alt_hyper_params['lambda'])))
         
         model.add(Dropout(best_hyper_params['dropout']))
 
-    model.add(Dense(units=1, activation='linear', kernel_regularizer=L2(best_hyper_params['lambda'])))
+    model.add(Dense(units=1, activation='linear', kernel_regularizer=L2(alt_hyper_params['lambda'])))
     
     model.compile(
-        optimizer=best_hyper_params['optimizer'](learning_rate=best_hyper_params['learning_rate']),
+        optimizer=optimizers[alt_hyper_params['optimizer']],
         loss=bce_loss(from_logits=True),
         metrics=[bce_metric(), BinaryAccuracy(threshold=0.5)]
     )
