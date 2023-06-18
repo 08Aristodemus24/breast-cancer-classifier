@@ -172,6 +172,23 @@ class Colony:
         # contain the paths and their sampled paths
         return [self.best_ants, self.best_ant]
 
+    def roulette(self, P):
+        """P - is the transition probability vector with dimensionality 1 x num_features
+        or in this case 1 x 1024 if number of features is 1024
+        """
+        # generate random float between (0, 1) exclusively
+        r_num = np.random.uniform()
+        
+        # since P is a 1 x num_features matrix
+        # np.cumsum(P) will be same shape as P
+        p_cum_sum = np.cumsum(P)
+        
+        bools = (r_num <= p_cum_sum).astype(int)
+        
+        # return the index of the first occurence of 
+        # a true/1 value in the bools array 
+        return np.where(bools == 1)[0][0]
+
     def J(self, curr_epoch, curr_ant, paths, num_sampled_features, data):
         """paths - is the built path by ant k which is of length 1 to num features - 1 inclusively
         with values 0 to 1023 since indeces of P are used
@@ -268,23 +285,6 @@ class Colony:
         }
 
         return [cost, output]
-                    
-    def roulette(self, P):
-        """P - is the transition probability vector with dimensionality 1 x num_features
-        or in this case 1 x 1024 if number of features is 1024
-        """
-        # generate random float between (0, 1) exclusively
-        r_num = np.random.uniform()
-        
-        # since P is a 1 x num_features matrix
-        # np.cumsum(P) will be same shape as P
-        p_cum_sum = np.cumsum(P)
-        
-        bools = (r_num <= p_cum_sum).astype(int)
-        
-        # return the index of the first occurence of 
-        # a true/1 value in the bools array 
-        return np.where(bools == 1)[0][0]
 
     def train(self, X, Y):
         # print(f'selected X shape: {X.shape}\n')
