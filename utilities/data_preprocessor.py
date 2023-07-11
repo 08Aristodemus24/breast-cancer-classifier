@@ -3,9 +3,9 @@ import pandas as pd
 from pandas.core.indexes.base import Index
 
 def preprocess(df, feat_idxs: str | Index='all'):
-    """# preprocess data
-    - normalize
-    - encode to numerical values Y column
+    """preprocesses data by normalizing and encoding numerical values in Y column
+        df - 
+        feat_idxs - 
     """
 
     # extract diagnosis as Y
