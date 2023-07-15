@@ -13,11 +13,10 @@ from aco_algorithm.ant_colony import Colony
 df = pd.read_csv('./data.csv')
 X, Y = preprocess(df)
 
-colony = Colony(X.T, Y.T, epochs=80, num_ants=20, visualize=False)
+colony = Colony(X.T, Y.T, epochs=3, num_ants=3, visualize=False)
 best_ants, best_ant = colony.run()
 
 # save each each best ant at each oteration to pkl file
-
 print(*best_ants, sep='\n\n')
 
 # save the overall best ant to pkl file

@@ -148,10 +148,13 @@ class Colony:
                 if self.ants[k, 0].cost < self.best_ant.cost:
                     self.best_ant = self.ants[k, 0]
 
+            
+
             # updating pheromones for positive feedback
             for k in range(self.num_ants):
                 # append the first node to the whole path made by ant
                 tour = np.append(self.ants[k, 0].tour, self.ants[k, 0].tour[0])
+                print(f'pheromone intensity adjacency matrix before positive feedback: {self.tau}\n')
 
                 # go through now all features from index [0] to [1023] 
                 for l in range(self.num_features):
@@ -159,8 +162,12 @@ class Colony:
                     j = tour[l + 1]
                     self.tau[i, j] = self.tau[i, j] + self.Q / self.ants[k, 0].cost
 
+                print(f'pheromone intensity adjacency matrix after positive feedback: {self.tau}\n')
+
             # updating evaporation rate for negative feedback
+            print(f'pheromone intensity adjacency matrix before negatvie feedback: {self.tau}\n')
             self.tau = (1 - self.rho) * self.tau
+            print(f'pheromone intensity adjacency matrix after negatvie feedback: {self.tau}\n')
 
             # store all ants at each iteration with the best cost
             self.best_ants.append(self.best_ant)
@@ -205,8 +212,8 @@ class Colony:
         # select the paths in q of length 1 to num_features - 1 
         # made by ant k from 1 to nf which recall is 15 by default
         selected_paths = paths[0:num_sampled_features]
-        print(f'selected paths: {selected_paths}\n')
-        print(f'features selected: {X.columns[selected_paths]}\n')
+        # print(f'selected paths: {selected_paths}\n')
+        # print(f'features selected: {X.columns[selected_paths]}\n')
 
         # calculate ratio of number of features to 
         # sample to length of tour/path made by ant k
@@ -258,7 +265,7 @@ class Colony:
             OVERALL_COST[r] = (train_ratio * results['train_binary_crossentropy'][-1]) + (cross_ratio * results['cross_val_binary_crossentropy'][-1])
 
 
-        print(f'train cost shape: {TRAIN_COST.shape}')
+        # print(f'train cost shape: {TRAIN_COST.shape}')
 
         # visualize resulting model and get the average of all losses
         # costs, accuracies of all these models values across the number of runs
