@@ -1,7 +1,7 @@
 # **Production Done Awaiting Deployment**
 
 # Usage
-create virtual or conda environment (if conda use conda create -n <env name> python=3.10) enter environment (if conda use conda activate <env name>) in current working directory containing requirements.txt use pip install -r requirements.txt
+create virtual or conda environment (if conda use `conda create -n <env name> python=3.10`) enter environment (if conda use `conda activate <env name>`) in current working directory containing `requirements.txt` use `pip install -r requirements.txt`
 
 ## to implement:
 **1st PHASE: building tuned model**
